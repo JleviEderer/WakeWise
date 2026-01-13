@@ -11,7 +11,9 @@
       "Bash(git push:*)",
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx expo doctor:*)"
+      "Bash(npx expo doctor:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }
