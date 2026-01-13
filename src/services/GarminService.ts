@@ -1,12 +1,11 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import * as Crypto from 'expo-crypto';
+import * as CryptoJS from 'crypto-js';
 import { GARMIN_CONFIG } from '../constants/config';
 import { SleepSession, SleepStage, GarminTokens } from '../models/types';
 import { storageService } from './StorageService';
 
-// Garmin uses OAuth 1.0a, which requires signing requests
-// This is a simplified implementation - production should use a proper OAuth library
+// Garmin uses OAuth 1.0a, which requires HMAC-SHA1 signing of requests
 
 class GarminService {
   private tokens: GarminTokens | null = null;
@@ -20,9 +19,9 @@ class GarminService {
     return this.tokens !== null;
   }
 
-  // Generate OAuth 1.0a signature base string
+  // Generate OAuth 1.0a nonce (random string)
   private generateNonce(): string {
-    return Crypto.randomUUID().replace(/-/g, '');
+    return CryptoJS.lib.WordArray.random(16).toString();
   }
 
   private getTimestamp(): string {
@@ -39,7 +38,7 @@ class GarminService {
       .replace(/\)/g, '%29');
   }
 
-  // Build OAuth signature (simplified - use proper library in production)
+  // Build OAuth 1.0a Authorization header with HMAC-SHA1 signature
   private buildAuthHeader(
     method: string,
     url: string,
@@ -55,31 +54,29 @@ class GarminService {
       ...params,
     };
 
-    // Sort and encode params
+    // Sort and encode params for signature base string
     const sortedParams = Object.keys(oauthParams)
       .sort()
       .map((k) => `${this.percentEncode(k)}=${this.percentEncode(oauthParams[k])}`)
       .join('&');
 
-    // Build signature base string
+    // Build signature base string per OAuth 1.0a spec
     const signatureBase = [
       method.toUpperCase(),
       this.percentEncode(url.split('?')[0]),
       this.percentEncode(sortedParams),
     ].join('&');
 
-    // Sign (this is a placeholder - proper HMAC-SHA1 needed)
-    // In production, use a crypto library for proper signing
+    // Build signing key: consumer_secret&token_secret
     const signingKey = `${this.percentEncode(GARMIN_CONFIG.CONSUMER_SECRET)}&${this.percentEncode(tokenSecret)}`;
 
-    // Note: React Native doesn't have native HMAC-SHA1
-    // You'll need to use a library like react-native-hash or expo-crypto
-    // For now, this is a placeholder
-    const signature = 'PLACEHOLDER_SIGNATURE';
+    // Generate HMAC-SHA1 signature
+    const signatureHash = CryptoJS.HmacSHA1(signatureBase, signingKey);
+    const signature = CryptoJS.enc.Base64.stringify(signatureHash);
 
     oauthParams.oauth_signature = signature;
 
-    // Build header
+    // Build Authorization header
     const headerParams = Object.keys(oauthParams)
       .filter((k) => k.startsWith('oauth_'))
       .sort()
