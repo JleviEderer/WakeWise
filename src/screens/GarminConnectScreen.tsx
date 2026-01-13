@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,6 +15,43 @@ import { RootStackParamList } from '../models/types';
 import { garminService } from '../services/GarminService';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+// Custom icon components
+const WatchIcon = () => (
+  <View style={styles.watchIcon}>
+    <View style={styles.watchFace}>
+      <View style={styles.watchDot} />
+    </View>
+    <View style={styles.watchBandTop} />
+    <View style={styles.watchBandBottom} />
+  </View>
+);
+
+const ShieldIcon = () => (
+  <View style={styles.shieldIcon}>
+    <View style={styles.shieldBody}>
+      <View style={styles.shieldCheck} />
+    </View>
+  </View>
+);
+
+const WaveIcon = () => (
+  <View style={styles.waveIcon}>
+    <View style={[styles.waveLine, styles.waveLine1]} />
+    <View style={[styles.waveLine, styles.waveLine2]} />
+    <View style={[styles.waveLine, styles.waveLine3]} />
+  </View>
+);
+
+const TargetIcon = () => (
+  <View style={styles.targetIcon}>
+    <View style={styles.targetOuter}>
+      <View style={styles.targetInner}>
+        <View style={styles.targetCenter} />
+      </View>
+    </View>
+  </View>
+);
 
 export default function GarminConnectScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -27,7 +65,6 @@ export default function GarminConnectScreen() {
       const success = await garminService.connect();
       if (success) {
         setIsConnected(true);
-        // Start syncing data
         handleSync();
       } else {
         Alert.alert(
@@ -47,14 +84,14 @@ export default function GarminConnectScreen() {
     try {
       await garminService.syncRecentSleepData(30);
       Alert.alert(
-        'Success!',
+        'Success',
         'Your sleep data has been synced. WakeWise will now analyze your patterns.',
         [{ text: 'Continue', onPress: () => navigation.goBack() }]
       );
     } catch (error) {
       Alert.alert(
-        'Sync Warning',
-        'Connected successfully but could not sync sleep data. This may be due to API limits. Your data will sync automatically later.',
+        'Sync Note',
+        'Connected successfully but could not sync sleep data yet. Your data will sync automatically later.',
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } finally {
@@ -64,71 +101,91 @@ export default function GarminConnectScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.icon}>⌚</Text>
-        <Text style={styles.title}>Connect Garmin</Text>
+        {/* Hero Icon */}
+        <View style={styles.heroContainer}>
+          <View style={styles.heroGlow} />
+          <WatchIcon />
+        </View>
+
+        <Text style={styles.title}>Connect Wearable</Text>
         <Text style={styles.description}>
-          Link your Garmin account to enable smart wake predictions based on your
-          sleep patterns.
+          Link your Garmin to enable intelligent wake predictions based on your
+          sleep patterns
         </Text>
 
+        {/* Features */}
         <View style={styles.features}>
           <View style={styles.feature}>
-            <Text style={styles.featureIcon}>🔒</Text>
+            <View style={styles.featureIconContainer}>
+              <ShieldIcon />
+            </View>
             <View style={styles.featureText}>
               <Text style={styles.featureTitle}>Private & Secure</Text>
               <Text style={styles.featureDescription}>
-                Your data stays on your device
+                Data stays on your device
               </Text>
             </View>
           </View>
 
           <View style={styles.feature}>
-            <Text style={styles.featureIcon}>📊</Text>
+            <View style={styles.featureIconContainer}>
+              <WaveIcon />
+            </View>
             <View style={styles.featureText}>
               <Text style={styles.featureTitle}>Sleep Stages</Text>
               <Text style={styles.featureDescription}>
-                We analyze deep, light, and REM patterns
+                Deep, light, and REM analysis
               </Text>
             </View>
           </View>
 
           <View style={styles.feature}>
-            <Text style={styles.featureIcon}>🎯</Text>
+            <View style={styles.featureIconContainer}>
+              <TargetIcon />
+            </View>
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Better Predictions</Text>
+              <Text style={styles.featureTitle}>Smart Predictions</Text>
               <Text style={styles.featureDescription}>
-                More data = more accurate wake times
+                More data, better accuracy
               </Text>
             </View>
           </View>
         </View>
 
+        {/* Connect / Connected State */}
         {isConnected ? (
           <View style={styles.connectedContainer}>
-            <Text style={styles.connectedIcon}>✓</Text>
-            <Text style={styles.connectedText}>Connected!</Text>
+            <View style={styles.successIcon}>
+              <View style={styles.successCheck} />
+            </View>
+            <Text style={styles.connectedText}>Connected</Text>
             {isSyncing && (
               <View style={styles.syncingContainer}>
-                <ActivityIndicator color={COLORS.primary} />
+                <ActivityIndicator color={COLORS.primary} size="small" />
                 <Text style={styles.syncingText}>Syncing sleep data...</Text>
               </View>
             )}
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.connectButton}
+            style={[styles.connectButton, isConnecting && styles.connectButtonDisabled]}
             onPress={handleConnect}
             disabled={isConnecting}
+            activeOpacity={0.85}
           >
             {isConnecting ? (
-              <ActivityIndicator color={COLORS.text} />
+              <ActivityIndicator color={COLORS.background} />
             ) : (
               <Text style={styles.connectButtonText}>Connect with Garmin</Text>
             )}
@@ -136,7 +193,7 @@ export default function GarminConnectScreen() {
         )}
 
         <Text style={styles.note}>
-          You'll be redirected to Garmin's website to authorize access.
+          You'll be redirected to Garmin to authorize
         </Text>
       </View>
     </View>
@@ -149,96 +206,263 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    padding: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
+    paddingBottom: 10,
   },
   backButton: {
-    color: COLORS.primary,
-    fontSize: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
+  },
+  backArrow: {
+    fontSize: 18,
+    color: COLORS.text,
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 24,
     alignItems: 'center',
+    paddingTop: 20,
   },
-  icon: {
-    fontSize: 64,
-    marginBottom: 20,
+
+  // Hero icon
+  heroContainer: {
+    marginBottom: 28,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  heroGlow: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.primaryMuted,
+  },
+  watchIcon: {
+    width: 64,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  watchFace: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  watchDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary,
+  },
+  watchBandTop: {
+    position: 'absolute',
+    top: 0,
+    width: 24,
+    height: 12,
+    backgroundColor: COLORS.primary,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+  },
+  watchBandBottom: {
+    position: 'absolute',
+    bottom: 0,
+    width: 24,
+    height: 12,
+    backgroundColor: COLORS.primary,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+  },
+
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '500',
     color: COLORS.text,
     marginBottom: 12,
+    letterSpacing: -0.5,
   },
   description: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 30,
-    paddingHorizontal: 20,
+    lineHeight: 22,
+    marginBottom: 32,
+    paddingHorizontal: 10,
   },
+
+  // Features
   features: {
     width: '100%',
-    marginBottom: 30,
+    marginBottom: 32,
   },
   feature: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
   },
-  featureIcon: {
-    fontSize: 24,
-    marginRight: 16,
+  featureIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.surfaceElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
   featureText: {
     flex: 1,
   },
   featureTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
     color: COLORS.text,
+    marginBottom: 2,
   },
   featureDescription: {
     fontSize: 13,
     color: COLORS.textSecondary,
-    marginTop: 2,
   },
+
+  // Mini icons
+  shieldIcon: {
+    width: 20,
+    height: 22,
+    alignItems: 'center',
+  },
+  shieldBody: {
+    width: 18,
+    height: 20,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    borderRadius: 2,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shieldCheck: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.primary,
+  },
+  waveIcon: {
+    width: 20,
+    height: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  waveLine: {
+    width: 3,
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
+  },
+  waveLine1: {
+    height: 8,
+  },
+  waveLine2: {
+    height: 14,
+  },
+  waveLine3: {
+    height: 10,
+  },
+  targetIcon: {
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  targetOuter: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  targetInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  targetCenter: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+  },
+
+  // Connect button
   connectButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 16,
     paddingVertical: 18,
-    paddingHorizontal: 40,
+    paddingHorizontal: 32,
     alignItems: 'center',
     width: '100%',
     marginBottom: 16,
   },
+  connectButtonDisabled: {
+    opacity: 0.7,
+  },
   connectButtonText: {
-    color: COLORS.text,
-    fontSize: 18,
+    color: COLORS.background,
+    fontSize: 17,
     fontWeight: '600',
+    letterSpacing: 0.2,
   },
   note: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     textAlign: 'center',
   },
+
+  // Connected state
   connectedContainer: {
     alignItems: 'center',
     marginBottom: 20,
   },
-  connectedIcon: {
-    fontSize: 48,
-    color: COLORS.success,
+  successIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.success,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 12,
+  },
+  successCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.background,
   },
   connectedText: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '500',
     color: COLORS.success,
   },
   syncingContainer: {

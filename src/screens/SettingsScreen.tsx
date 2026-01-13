@@ -54,7 +54,7 @@ export default function SettingsScreen() {
   const handleDisconnectGarmin = async () => {
     Alert.alert(
       'Disconnect Garmin',
-      'Are you sure? Your historical sleep data will be kept.',
+      'Your historical sleep data will be kept locally.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -76,7 +76,7 @@ export default function SettingsScreen() {
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Clear Data',
+          text: 'Clear Everything',
           style: 'destructive',
           onPress: async () => {
             await storageService.clearAllData();
@@ -91,20 +91,34 @@ export default function SettingsScreen() {
   if (!settings) return null;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Settings</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
-      {/* Garmin Connection */}
+      {/* Wearable Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Wearable</Text>
         <View style={styles.card}>
-          <View style={styles.row}>
-            <View>
+          <View style={styles.cardRow}>
+            <View style={styles.rowIcon}>
+              <View style={styles.iconRing}>
+                <View style={styles.iconCore} />
+              </View>
+            </View>
+            <View style={styles.rowContent}>
               <Text style={styles.rowTitle}>Garmin Connect</Text>
               <Text style={styles.rowSubtitle}>
                 {settings.garminConnected ? 'Connected' : 'Not connected'}
@@ -112,118 +126,151 @@ export default function SettingsScreen() {
             </View>
             {settings.garminConnected ? (
               <TouchableOpacity onPress={handleDisconnectGarmin}>
-                <Text style={styles.disconnectButton}>Disconnect</Text>
+                <Text style={styles.disconnectText}>Disconnect</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
+                style={styles.connectPill}
                 onPress={() => navigation.navigate('GarminConnect')}
               >
-                <Text style={styles.connectButton}>Connect</Text>
+                <Text style={styles.connectPillText}>Connect</Text>
               </TouchableOpacity>
             )}
           </View>
         </View>
       </View>
 
-      {/* Alarm Settings */}
+      {/* Alarm Behavior Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Alarm Behavior</Text>
         <View style={styles.card}>
-          <View style={styles.row}>
-            <View style={styles.rowContent}>
+          {/* Confidence Threshold */}
+          <View style={styles.cardRowVertical}>
+            <View style={styles.rowTextContainer}>
               <Text style={styles.rowTitle}>Confidence Threshold</Text>
               <Text style={styles.rowSubtitle}>
-                Use predicted time only when confidence is above{' '}
-                {settings.confidenceThreshold}%
+                Only use predicted time when confidence exceeds this level
               </Text>
+            </View>
+            <View style={styles.thresholdRow}>
+              {[30, 40, 50, 60, 70].map((value) => (
+                <TouchableOpacity
+                  key={value}
+                  style={[
+                    styles.thresholdPill,
+                    settings.confidenceThreshold === value &&
+                      styles.thresholdPillSelected,
+                  ]}
+                  onPress={() => updateSetting('confidenceThreshold', value)}
+                >
+                  <Text
+                    style={[
+                      styles.thresholdText,
+                      settings.confidenceThreshold === value &&
+                        styles.thresholdTextSelected,
+                    ]}
+                  >
+                    {value}%
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
-          <View style={styles.thresholdButtons}>
-            {[30, 40, 50, 60, 70].map((value) => (
-              <TouchableOpacity
-                key={value}
-                style={[
-                  styles.thresholdButton,
-                  settings.confidenceThreshold === value &&
-                    styles.thresholdButtonSelected,
-                ]}
-                onPress={() => updateSetting('confidenceThreshold', value)}
-              >
-                <Text
-                  style={[
-                    styles.thresholdText,
-                    settings.confidenceThreshold === value &&
-                      styles.thresholdTextSelected,
-                  ]}
-                >
-                  {value}%
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <View style={styles.cardDivider} />
 
-          <View style={[styles.row, styles.rowBorder]}>
-            <Text style={styles.rowTitle}>Gradual Volume Ramp</Text>
+          {/* Gradual Volume */}
+          <View style={styles.cardRow}>
+            <View style={styles.rowContent}>
+              <Text style={styles.rowTitle}>Gradual Volume Ramp</Text>
+              <Text style={styles.rowSubtitle}>
+                Slowly increase alarm volume
+              </Text>
+            </View>
             <Switch
               value={settings.gradualVolumeRamp}
               onValueChange={(v) => updateSetting('gradualVolumeRamp', v)}
-              trackColor={{ false: COLORS.surfaceLight, true: COLORS.primary }}
+              trackColor={{
+                false: COLORS.surfaceBorder,
+                true: COLORS.primaryMuted,
+              }}
+              thumbColor={
+                settings.gradualVolumeRamp ? COLORS.primary : COLORS.textMuted
+              }
             />
           </View>
 
-          <View style={styles.row}>
-            <Text style={styles.rowTitle}>Haptic Feedback</Text>
+          <View style={styles.cardDivider} />
+
+          {/* Haptic Feedback */}
+          <View style={styles.cardRow}>
+            <View style={styles.rowContent}>
+              <Text style={styles.rowTitle}>Haptic Feedback</Text>
+              <Text style={styles.rowSubtitle}>
+                Vibrate when alarm triggers
+              </Text>
+            </View>
             <Switch
               value={settings.hapticFeedback}
               onValueChange={(v) => updateSetting('hapticFeedback', v)}
-              trackColor={{ false: COLORS.surfaceLight, true: COLORS.primary }}
+              trackColor={{
+                false: COLORS.surfaceBorder,
+                true: COLORS.primaryMuted,
+              }}
+              thumbColor={
+                settings.hapticFeedback ? COLORS.primary : COLORS.textMuted
+              }
             />
           </View>
         </View>
       </View>
 
-      {/* Stats */}
+      {/* Stats Section */}
       {feedbackStats && feedbackStats.totalRatings > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Your Stats</Text>
           <View style={styles.card}>
-            <View style={styles.statsRow}>
-              <View style={styles.stat}>
+            <View style={styles.statsContainer}>
+              <View style={styles.statItem}>
                 <Text style={styles.statValue}>{feedbackStats.totalRatings}</Text>
                 <Text style={styles.statLabel}>Wake ratings</Text>
               </View>
-              <View style={styles.stat}>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
                 <Text style={styles.statValue}>
                   {feedbackStats.averageFeeling.toFixed(1)}
                 </Text>
-                <Text style={styles.statLabel}>Avg feeling (1-5)</Text>
+                <Text style={styles.statLabel}>Avg feeling</Text>
               </View>
             </View>
           </View>
         </View>
       )}
 
-      {/* Data Management */}
+      {/* Data Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Data</Text>
-        <View style={styles.card}>
-          <TouchableOpacity style={styles.row} onPress={handleClearData}>
-            <Text style={styles.dangerText}>Clear All Data</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.dangerCard} onPress={handleClearData}>
+          <Text style={styles.dangerText}>Clear All Data</Text>
+          <Text style={styles.dangerSubtext}>
+            Remove all alarms, settings, and history
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* About */}
+      {/* About Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.card}>
-          <View style={styles.row}>
-            <Text style={styles.rowTitle}>{APP_INFO.name}</Text>
-            <Text style={styles.rowSubtitle}>v{APP_INFO.version}</Text>
+          <View style={styles.aboutRow}>
+            <Text style={styles.aboutName}>{APP_INFO.name}</Text>
+            <Text style={styles.aboutVersion}>v{APP_INFO.version}</Text>
           </View>
+          <Text style={styles.aboutDescription}>{APP_INFO.description}</Text>
         </View>
       </View>
+
+      <View style={styles.bottomSpacer} />
     </ScrollView>
   );
 }
@@ -234,115 +281,229 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
+    paddingBottom: 40,
   },
+
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
-    gap: 16,
+    marginBottom: 32,
   },
   backButton: {
-    color: COLORS.primary,
-    fontSize: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  backArrow: {
+    fontSize: 18,
     color: COLORS.text,
   },
+  title: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '500',
+    color: COLORS.text,
+    textAlign: 'center',
+    letterSpacing: -0.3,
+  },
+  headerSpacer: {
+    width: 40,
+  },
+
+  // Sections
   section: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: 10,
+    color: COLORS.textMuted,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    marginBottom: 12,
+    marginLeft: 4,
   },
+
+  // Cards
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
     overflow: 'hidden',
   },
-  row: {
+  cardRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
   },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.surfaceLight,
+  cardRowVertical: {
+    padding: 16,
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: COLORS.surfaceBorder,
+    marginHorizontal: 16,
+  },
+  rowIcon: {
+    marginRight: 14,
+  },
+  iconRing: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconCore: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: COLORS.primary,
   },
   rowContent: {
     flex: 1,
   },
+  rowTextContainer: {
+    marginBottom: 14,
+  },
   rowTitle: {
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '500',
     color: COLORS.text,
+    marginBottom: 2,
   },
   rowSubtitle: {
     fontSize: 13,
     color: COLORS.textSecondary,
-    marginTop: 2,
   },
-  connectButton: {
-    color: COLORS.primary,
-    fontSize: 16,
+
+  // Connect/Disconnect
+  disconnectText: {
+    fontSize: 14,
+    color: COLORS.accent,
     fontWeight: '500',
   },
-  disconnectButton: {
-    color: COLORS.error,
-    fontSize: 16,
-  },
-  thresholdButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.surfaceLight,
-  },
-  thresholdButton: {
+  connectPill: {
+    backgroundColor: COLORS.primaryMuted,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: COLORS.surfaceLight,
+    borderRadius: 20,
   },
-  thresholdButtonSelected: {
-    backgroundColor: COLORS.primary,
-  },
-  thresholdText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  thresholdTextSelected: {
-    color: COLORS.text,
+  connectPillText: {
+    fontSize: 13,
+    color: COLORS.primary,
     fontWeight: '600',
   },
-  statsRow: {
+
+  // Threshold pills
+  thresholdRow: {
     flexDirection: 'row',
-    padding: 16,
+    gap: 8,
   },
-  stat: {
+  thresholdPill: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 10,
+    backgroundColor: COLORS.surfaceElevated,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
+  },
+  thresholdPillSelected: {
+    backgroundColor: COLORS.primaryMuted,
+    borderColor: COLORS.primary,
+  },
+  thresholdText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  thresholdTextSelected: {
+    color: COLORS.primary,
+  },
+
+  // Stats
+  statsContainer: {
+    flexDirection: 'row',
+    padding: 20,
+  },
+  statItem: {
     flex: 1,
     alignItems: 'center',
   },
+  statDivider: {
+    width: 1,
+    backgroundColor: COLORS.surfaceBorder,
+    marginVertical: 4,
+  },
   statValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '300',
     color: COLORS.primary,
+    marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginTop: 4,
+  },
+
+  // Danger card
+  dangerCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
   },
   dangerText: {
+    fontSize: 15,
+    fontWeight: '500',
     color: COLORS.error,
+    marginBottom: 4,
+  },
+  dangerSubtext: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+  },
+
+  // About
+  aboutRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingBottom: 8,
+  },
+  aboutName: {
     fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+  aboutVersion: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+  },
+  aboutDescription: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    lineHeight: 18,
+  },
+
+  bottomSpacer: {
+    height: 20,
   },
 });

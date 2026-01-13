@@ -27,7 +27,7 @@ export default function AlarmSetupScreen() {
   const [windowDuration, setWindowDuration] = useState(30);
   const [earliestWakeTime, setEarliestWakeTime] = useState('');
   const [useEarliestTime, setUseEarliestTime] = useState(false);
-  const [repeatDays, setRepeatDays] = useState<number[]>([1, 2, 3, 4, 5]); // Mon-Fri
+  const [repeatDays, setRepeatDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ export default function AlarmSetupScreen() {
       enabled,
       repeatDays,
     };
-
     await storageService.saveWakeWindow(alarm);
     navigation.goBack();
   };
@@ -81,7 +80,6 @@ export default function AlarmSetupScreen() {
   };
 
   const formatTimeInput = (text: string) => {
-    // Simple time formatting
     const cleaned = text.replace(/[^0-9]/g, '');
     if (cleaned.length >= 3) {
       return `${cleaned.slice(0, 2)}:${cleaned.slice(2, 4)}`;
@@ -90,101 +88,121 @@ export default function AlarmSetupScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelButton}>Cancel</Text>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.title}>{isEditing ? 'Edit Alarm' : 'New Alarm'}</Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.saveButton}>Save</Text>
+        <TouchableOpacity style={styles.headerButton} onPress={handleSave}>
+          <Text style={styles.saveText}>Save</Text>
         </TouchableOpacity>
       </View>
 
       {/* Alarm Name */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Alarm Name</Text>
-        <TextInput
-          style={styles.textInput}
-          value={name}
-          onChangeText={setName}
-          placeholder="e.g., Weekday Alarm"
-          placeholderTextColor={COLORS.textSecondary}
-        />
+        <Text style={styles.sectionLabel}>Name</Text>
+        <View style={styles.inputCard}>
+          <TextInput
+            style={styles.textInput}
+            value={name}
+            onChangeText={setName}
+            placeholder="Morning routine"
+            placeholderTextColor={COLORS.textMuted}
+          />
+        </View>
       </View>
 
-      {/* Hard Wake Time */}
+      {/* Latest Wake Time */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Latest Wake Time</Text>
-        <Text style={styles.sectionHint}>
-          You will never wake later than this time
-        </Text>
-        <TextInput
-          style={styles.timeInput}
-          value={hardWakeTime}
-          onChangeText={(text) => setHardWakeTime(formatTimeInput(text))}
-          placeholder="07:00"
-          placeholderTextColor={COLORS.textSecondary}
-          keyboardType="number-pad"
-          maxLength={5}
-        />
+        <Text style={styles.sectionHint}>Your hard deadline - never wake later</Text>
+        <View style={styles.timeCard}>
+          <TextInput
+            style={styles.timeInput}
+            value={hardWakeTime}
+            onChangeText={(text) => setHardWakeTime(formatTimeInput(text))}
+            placeholder="07:00"
+            placeholderTextColor={COLORS.textMuted}
+            keyboardType="number-pad"
+            maxLength={5}
+          />
+        </View>
       </View>
 
-      {/* Wake Window Duration */}
+      {/* Wake Window */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Wake Window</Text>
-        <Text style={styles.sectionHint}>
-          How early can we wake you before your deadline?
-        </Text>
-        <View style={styles.optionsRow}>
+        <Text style={styles.sectionHint}>How early can we wake you?</Text>
+        <View style={styles.optionsGrid}>
           {WINDOW_DURATION_OPTIONS.map((option) => (
             <TouchableOpacity
               key={option.value}
               style={[
-                styles.optionButton,
-                windowDuration === option.value && styles.optionButtonSelected,
+                styles.optionCard,
+                windowDuration === option.value && styles.optionCardSelected,
               ]}
               onPress={() => setWindowDuration(option.value)}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
-                  styles.optionText,
-                  windowDuration === option.value && styles.optionTextSelected,
+                  styles.optionValue,
+                  windowDuration === option.value && styles.optionValueSelected,
                 ]}
               >
-                {option.label}
+                {option.value}
+              </Text>
+              <Text
+                style={[
+                  styles.optionUnit,
+                  windowDuration === option.value && styles.optionUnitSelected,
+                ]}
+              >
+                min
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      {/* Optional Earliest Time */}
+      {/* Earliest Wake Time (Optional) */}
       <View style={styles.section}>
-        <View style={styles.switchRow}>
-          <View>
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleContent}>
             <Text style={styles.sectionLabel}>Earliest Wake Time</Text>
-            <Text style={styles.sectionHint}>
-              Never wake before this time (optional)
-            </Text>
+            <Text style={styles.sectionHint}>Never wake before this time</Text>
           </View>
           <Switch
             value={useEarliestTime}
             onValueChange={setUseEarliestTime}
-            trackColor={{ false: COLORS.surfaceLight, true: COLORS.primary }}
-            thumbColor={COLORS.text}
+            trackColor={{
+              false: COLORS.surfaceBorder,
+              true: COLORS.primaryMuted,
+            }}
+            thumbColor={useEarliestTime ? COLORS.primary : COLORS.textMuted}
           />
         </View>
         {useEarliestTime && (
-          <TextInput
-            style={styles.timeInput}
-            value={earliestWakeTime}
-            onChangeText={(text) => setEarliestWakeTime(formatTimeInput(text))}
-            placeholder="06:00"
-            placeholderTextColor={COLORS.textSecondary}
-            keyboardType="number-pad"
-            maxLength={5}
-          />
+          <View style={styles.timeCardSmall}>
+            <TextInput
+              style={styles.timeInputSmall}
+              value={earliestWakeTime}
+              onChangeText={(text) => setEarliestWakeTime(formatTimeInput(text))}
+              placeholder="06:00"
+              placeholderTextColor={COLORS.textMuted}
+              keyboardType="number-pad"
+              maxLength={5}
+            />
+          </View>
         )}
       </View>
 
@@ -196,10 +214,11 @@ export default function AlarmSetupScreen() {
             <TouchableOpacity
               key={day.value}
               style={[
-                styles.dayButton,
-                repeatDays.includes(day.value) && styles.dayButtonSelected,
+                styles.dayPill,
+                repeatDays.includes(day.value) && styles.dayPillSelected,
               ]}
               onPress={() => toggleDay(day.value)}
+              activeOpacity={0.8}
             >
               <Text
                 style={[
@@ -216,23 +235,34 @@ export default function AlarmSetupScreen() {
 
       {/* Enabled Toggle */}
       <View style={styles.section}>
-        <View style={styles.switchRow}>
-          <Text style={styles.sectionLabel}>Alarm Enabled</Text>
-          <Switch
-            value={enabled}
-            onValueChange={setEnabled}
-            trackColor={{ false: COLORS.surfaceLight, true: COLORS.primary }}
-            thumbColor={COLORS.text}
-          />
+        <View style={styles.card}>
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>Alarm Active</Text>
+            <Switch
+              value={enabled}
+              onValueChange={setEnabled}
+              trackColor={{
+                false: COLORS.surfaceBorder,
+                true: COLORS.primaryMuted,
+              }}
+              thumbColor={enabled ? COLORS.primary : COLORS.textMuted}
+            />
+          </View>
         </View>
       </View>
 
-      {/* Delete Button (only when editing) */}
+      {/* Delete Button */}
       {isEditing && (
-        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-          <Text style={styles.deleteButtonText}>Delete Alarm</Text>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.deleteText}>Delete Alarm</Text>
         </TouchableOpacity>
       )}
+
+      <View style={styles.bottomSpacer} />
     </ScrollView>
   );
 }
@@ -243,125 +273,201 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: 24,
     paddingTop: 60,
+    paddingBottom: 40,
   },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 36,
   },
-  cancelButton: {
-    color: COLORS.textSecondary,
+  headerButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  cancelText: {
     fontSize: 16,
+    color: COLORS.textSecondary,
   },
   title: {
-    color: COLORS.text,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
+    color: COLORS.text,
+    letterSpacing: -0.3,
   },
-  saveButton: {
-    color: COLORS.primary,
+  saveText: {
     fontSize: 16,
+    color: COLORS.primary,
     fontWeight: '600',
   },
+
+  // Sections
   section: {
     marginBottom: 28,
   },
   sectionLabel: {
-    color: COLORS.text,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
+    color: COLORS.text,
     marginBottom: 4,
   },
   sectionHint: {
-    color: COLORS.textSecondary,
     fontSize: 13,
+    color: COLORS.textSecondary,
     marginBottom: 12,
   },
-  textInput: {
+
+  // Input cards
+  inputCard: {
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
+    overflow: 'hidden',
+  },
+  textInput: {
     padding: 16,
-    color: COLORS.text,
     fontSize: 16,
+    color: COLORS.text,
+  },
+  timeCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
+    paddingVertical: 24,
+    alignItems: 'center',
   },
   timeInput: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 20,
+    fontSize: 56,
+    fontWeight: '200',
     color: COLORS.text,
+    textAlign: 'center',
+    letterSpacing: -2,
+  },
+  timeCardSmall: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
+    paddingVertical: 16,
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  timeInputSmall: {
     fontSize: 32,
     fontWeight: '300',
+    color: COLORS.text,
     textAlign: 'center',
   },
-  optionsRow: {
+
+  // Options grid
+  optionsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 10,
   },
-  optionButton: {
+  optionCard: {
+    flex: 1,
     backgroundColor: COLORS.surface,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 2,
-    borderColor: COLORS.surface,
+    borderRadius: 14,
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
   },
-  optionButtonSelected: {
+  optionCardSelected: {
+    backgroundColor: COLORS.primaryMuted,
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '20',
   },
-  optionText: {
+  optionValue: {
+    fontSize: 22,
+    fontWeight: '400',
     color: COLORS.textSecondary,
-    fontSize: 14,
   },
-  optionTextSelected: {
+  optionValueSelected: {
     color: COLORS.primary,
-    fontWeight: '500',
   },
+  optionUnit: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginTop: 2,
+    letterSpacing: 0.5,
+  },
+  optionUnitSelected: {
+    color: COLORS.primaryLight,
+  },
+
+  // Toggle row
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  toggleContent: {
+    flex: 1,
+  },
+  toggleLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.text,
+  },
+
+  // Card
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
+  },
+
+  // Days row
   daysRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 6,
   },
-  dayButton: {
+  dayPill: {
+    flex: 1,
     backgroundColor: COLORS.surface,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    minWidth: 44,
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
   },
-  dayButtonSelected: {
+  dayPillSelected: {
+    backgroundColor: COLORS.primaryMuted,
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '20',
   },
   dayText: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textMuted,
   },
   dayTextSelected: {
     color: COLORS.primary,
   },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+
+  // Delete button
   deleteButton: {
-    backgroundColor: COLORS.error + '20',
-    borderRadius: 12,
+    backgroundColor: COLORS.accentMuted,
+    borderRadius: 14,
     padding: 16,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 12,
   },
-  deleteButtonText: {
+  deleteText: {
+    fontSize: 15,
+    fontWeight: '500',
     color: COLORS.error,
-    fontSize: 16,
-    fontWeight: '600',
+  },
+
+  bottomSpacer: {
+    height: 40,
   },
 });
