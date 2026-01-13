@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "WakeWise",
+    "slug": "WakeWise",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.wakewise.app",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio", "fetch", "remote-notification"],
+        "NSMicrophoneUsageDescription": "WakeWise may use the microphone for optional sleep sound detection.",
+        "NSHealthShareUsageDescription": "WakeWise uses health data to analyze your sleep patterns.",
+        "NSHealthUpdateUsageDescription": "WakeWise uses health data to analyze your sleep patterns."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "package": "com.wakewise.app",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "sounds": ["./assets/alarm_sound.wav"]
+        }
+      ]
+    ],
+    "scheme": "wakewise"
+  }
+}
