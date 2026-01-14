@@ -36,7 +36,7 @@ WakeWise is a smart alarm application that uses sleep data to wake you at optima
 - You can uninstall the app to remove all local data
 
 ## Contact
-For questions about this privacy policy, contact: jleviederer@gmail.com
+For questions about this privacy policy, contact: justin.ederer@wake-wise.com
 
 ## Changes
 We may update this policy occasionally. Continued use of the app constitutes acceptance of any changes.
