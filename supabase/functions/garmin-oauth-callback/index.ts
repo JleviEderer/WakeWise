@@ -39,7 +39,7 @@ serve(async (req: Request) => {
   // Supabase Edge Functions on *.supabase.co rewrite text/html to text/plain,
   // so we must redirect to externally-hosted HTML for proper rendering
   const isError = !!error;
-  const baseUrl = "https://justingeeslin.github.io/wakewise-oauth";
+  const baseUrl = "https://jleviederer.github.io/WakeWise";
 
   return new Response(null, {
     status: 302,
