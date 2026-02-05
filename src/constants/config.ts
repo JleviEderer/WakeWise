@@ -1,15 +1,28 @@
+// Supabase Configuration
+export const SUPABASE_CONFIG = {
+  URL: process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://ievsoryykdrfykdadost.supabase.co',
+  ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlldnNvcnl5a2RyZnlrZGFkb3N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzODE1MDAsImV4cCI6MjA4NDk1NzUwMH0.RFZBhvKUHxLhXqhkWUK0oagWLivuS6RWjzhkUHFx8KI',
+};
+
 // Garmin API Configuration
-// You'll need to register at https://developer.garmin.com and get these credentials
+// Credentials loaded from environment variables (.env file)
 export const GARMIN_CONFIG = {
-  // Replace with your actual Garmin API credentials
-  CONSUMER_KEY: 'YOUR_GARMIN_CONSUMER_KEY',
-  CONSUMER_SECRET: 'YOUR_GARMIN_CONSUMER_SECRET',
-  // OAuth URLs
-  REQUEST_TOKEN_URL: 'https://connectapi.garmin.com/oauth-service/oauth/request_token',
-  AUTHORIZE_URL: 'https://connect.garmin.com/oauthConfirm',
-  ACCESS_TOKEN_URL: 'https://connectapi.garmin.com/oauth-service/oauth/access_token',
+  // Garmin API credentials from environment
+  CLIENT_ID: process.env.EXPO_PUBLIC_GARMIN_CLIENT_ID || '',
+  CLIENT_SECRET: process.env.EXPO_PUBLIC_GARMIN_CLIENT_SECRET || '',
+
+  // OAuth 2.0 PKCE URLs
+  AUTHORIZATION_URL: 'https://connect.garmin.com/oauth2Confirm',
+  TOKEN_URL: 'https://diauth.garmin.com/di-oauth2-service/oauth/token',
+
+  // Supabase Edge Function that receives OAuth callback and redirects to app
+  OAUTH_CALLBACK_URL: 'https://ievsoryykdrfykdadost.supabase.co/functions/v1/garmin-oauth-callback',
+
   // API Base URL
   API_BASE_URL: 'https://apis.garmin.com',
+
+  // Scopes for sleep data access
+  SCOPES: 'sleep_data',
 };
 
 // Wake Window Options

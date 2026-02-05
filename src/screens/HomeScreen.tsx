@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
   Animated,
+  Easing,
   Dimensions,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -51,36 +52,40 @@ export default function HomeScreen() {
 
   // Breathing animation for the time display
   const breatheAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0.3)).current;
+  const glowAnim = useRef(new Animated.Value(0.08)).current;
 
   useEffect(() => {
     // Gentle breathing animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(breatheAnim, {
-          toValue: 1.02,
+          toValue: 1.015,
           duration: 4000,
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(breatheAnim, {
           toValue: 1,
           duration: 4000,
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
       ])
     ).start();
 
-    // Subtle glow pulse
+    // Subtle glow pulse for sunrise - slower, gentler
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
-          toValue: 0.6,
-          duration: 3000,
+          toValue: 0.18,
+          duration: 4000,
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(glowAnim, {
-          toValue: 0.3,
-          duration: 3000,
+          toValue: 0.08,
+          duration: 4000,
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
       ])
@@ -214,8 +219,12 @@ export default function HomeScreen() {
       {/* Main Alarm Display */}
       {activeAlarm ? (
         <View style={styles.alarmCard}>
-          {/* Decorative glow behind time */}
-          <Animated.View style={[styles.timeGlow, { opacity: glowAnim }]} />
+          {/* Sunrise horizon effect */}
+          <View style={styles.sunriseContainer}>
+            <Animated.View style={[styles.sunGlow, { opacity: glowAnim }]} />
+            <View style={styles.sunBody} />
+            <View style={styles.horizonLine} />
+          </View>
 
           <View style={styles.alarmMeta}>
             <View style={styles.alarmBadge}>
@@ -299,17 +308,19 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Quick Action */}
-      <TouchableOpacity
-        style={styles.newAlarmButton}
-        onPress={() => navigation.navigate('AlarmSetup', {})}
-        activeOpacity={0.8}
-      >
-        <View style={styles.newAlarmIcon}>
-          <Text style={styles.newAlarmIconText}>+</Text>
-        </View>
-        <Text style={styles.newAlarmText}>New Alarm</Text>
-      </TouchableOpacity>
+      {/* Quick Action - only show when there's already an active alarm */}
+      {activeAlarm && (
+        <TouchableOpacity
+          style={styles.newAlarmButton}
+          onPress={() => navigation.navigate('AlarmSetup', {})}
+          activeOpacity={0.8}
+        >
+          <View style={styles.newAlarmIcon}>
+            <Text style={styles.newAlarmIconText}>+</Text>
+          </View>
+          <Text style={styles.newAlarmText}>Add Another Alarm</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Bottom spacing */}
       <View style={styles.bottomSpacer} />
@@ -465,15 +476,40 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  timeGlow: {
+  // Sunrise horizon effect
+  sunriseContainer: {
     position: 'absolute',
-    top: 60,
-    left: '25%',
-    right: '25%',
-    height: 100,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  horizonLine: {
+    position: 'absolute',
+    bottom: 60,
+    left: 24,
+    right: 24,
+    height: 1,
+    backgroundColor: COLORS.surfaceBorder,
+  },
+  sunBody: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     backgroundColor: COLORS.primary,
-    borderRadius: 50,
-    transform: [{ scaleX: 2 }],
+    opacity: 0.25,
+    position: 'absolute',
+    bottom: -90,
+  },
+  sunGlow: {
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: COLORS.primary,
+    position: 'absolute',
+    bottom: -150,
   },
   alarmMeta: {
     flexDirection: 'row',

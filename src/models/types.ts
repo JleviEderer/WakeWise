@@ -74,8 +74,9 @@ export interface TimeWindow {
 
 export interface GarminTokens {
   accessToken: string;
-  accessTokenSecret: string;
-  userId: string;
+  refreshToken: string;
+  expiresAt: number; // Unix timestamp in milliseconds
+  userId?: string;
 }
 
 export interface UserSettings {
