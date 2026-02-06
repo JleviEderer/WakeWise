@@ -97,7 +97,28 @@ class GarminService {
         }
 
         this.tokens = tokens;
-        await storageService.saveGarminTokens(tokens);
+
+        // Fetch the Garmin User ID (required for matching webhook data)
+        const userId = await this.fetchUserId();
+        if (userId) {
+          this.tokens.userId = userId;
+          console.log('[Garmin OAuth] User ID:', userId);
+
+          // Create user record in Supabase (required for webhook data matching)
+          const supabaseUserId = await supabaseService.setGarminUserId(userId);
+          if (supabaseUserId) {
+            console.log('[Garmin OAuth] Supabase user created/found:', supabaseUserId);
+          } else {
+            console.warn('[Garmin OAuth] Could not create Supabase user record');
+          }
+
+          // Request historical data backfill
+          await this.requestBackfill(30);
+        } else {
+          console.warn('[Garmin OAuth] Could not fetch user ID - webhook matching may not work');
+        }
+
+        await storageService.saveGarminTokens(this.tokens);
         await storageService.saveUserSettings({ garminConnected: true });
 
         console.log('[Garmin OAuth] === OAuth Flow Complete ===');
@@ -122,7 +143,28 @@ class GarminService {
           }
 
           this.tokens = tokens;
-          await storageService.saveGarminTokens(tokens);
+
+          // Fetch the Garmin User ID (required for matching webhook data)
+          const userId = await this.fetchUserId();
+          if (userId) {
+            this.tokens.userId = userId;
+            console.log('[Garmin OAuth] User ID:', userId);
+
+            // Create user record in Supabase (required for webhook data matching)
+            const supabaseUserId = await supabaseService.setGarminUserId(userId);
+            if (supabaseUserId) {
+              console.log('[Garmin OAuth] Supabase user created/found:', supabaseUserId);
+            } else {
+              console.warn('[Garmin OAuth] Could not create Supabase user record');
+            }
+
+            // Request historical data backfill
+            await this.requestBackfill(30);
+          } else {
+            console.warn('[Garmin OAuth] Could not fetch user ID - webhook matching may not work');
+          }
+
+          await storageService.saveGarminTokens(this.tokens);
           await storageService.saveUserSettings({ garminConnected: true });
           return true;
         }
@@ -314,6 +356,65 @@ class GarminService {
     return fetch(url, { ...options, headers });
   }
 
+  // Request historical sleep data backfill from Garmin
+  // Garmin will push the data to our webhook asynchronously
+  async requestBackfill(days: number = 30): Promise<boolean> {
+    try {
+      const endTime = Math.floor(Date.now() / 1000);
+      const startTime = endTime - (days * 24 * 60 * 60);
+
+      const url = `${GARMIN_CONFIG.API_BASE_URL}/wellness-api/rest/backfill/sleeps`;
+      console.log('[Garmin API] Requesting backfill for', days, 'days...');
+
+      const response = await this.fetchWithAuth(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          summaryStartTimeInSeconds: startTime,
+          summaryEndTimeInSeconds: endTime,
+        }),
+      });
+
+      console.log('[Garmin API] Backfill response status:', response.status);
+
+      if (response.status === 202) {
+        console.log('[Garmin API] Backfill request accepted - data will arrive via webhook');
+        return true;
+      }
+
+      const errorText = await response.text();
+      console.error('[Garmin API] Backfill error:', response.status, errorText);
+      return false;
+    } catch (error) {
+      console.error('[Garmin API] Backfill request failed:', error);
+      return false;
+    }
+  }
+
+  // Fetch the Garmin Health API User ID (required for matching webhook data)
+  private async fetchUserId(): Promise<string | null> {
+    try {
+      const url = `${GARMIN_CONFIG.API_BASE_URL}/wellness-api/rest/user/id`;
+      console.log('[Garmin OAuth] Fetching user ID from:', url);
+
+      const response = await this.fetchWithAuth(url);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Garmin OAuth] User ID fetch error:', response.status, errorText);
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('[Garmin OAuth] User ID response:', data);
+
+      return data.userId || null;
+    } catch (error) {
+      console.error('[Garmin OAuth] Error fetching user ID:', error);
+      return null;
+    }
+  }
+
   // Disconnect Garmin
   async disconnect(): Promise<void> {
     this.tokens = null;
@@ -410,7 +511,7 @@ class GarminService {
     return date.toISOString().split('T')[0];
   }
 
-  // Sync last N days of sleep data
+  // Sync last N days of sleep data from Supabase (webhook data)
   async syncRecentSleepData(days: number = 30): Promise<SleepSession[]> {
     const endDate = new Date();
     const startDate = new Date();
@@ -424,6 +525,41 @@ class GarminService {
     }
 
     return sessions;
+  }
+
+  // Sync sleep data from Supabase (populated by Garmin webhooks)
+  // Note: Garmin Health API is push-based. Historical data requires manual backfill
+  // via Garmin developer web tools or waiting for new data to sync via webhooks.
+  async fetchHistoricalSleepData(days: number = 30): Promise<SleepSession[]> {
+    if (!this.tokens) {
+      throw new Error('Not connected to Garmin');
+    }
+
+    console.log(`[Garmin API] Syncing ${days} days of sleep data from database...`);
+    console.log(`[Garmin API] User ID: ${this.tokens.userId || 'not set'}`);
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    try {
+      const sessions = await this.fetchSleepData(startDate, endDate);
+      console.log(`[Garmin API] Found ${sessions.length} sessions in database`);
+
+      // Save to local storage for offline access
+      for (const session of sessions) {
+        await storageService.addSleepSession(session);
+      }
+
+      if (sessions.length > 0) {
+        console.log('[Garmin API] Saved sessions to local storage');
+      }
+
+      return sessions;
+    } catch (error) {
+      console.error('[Garmin API] fetchHistoricalSleepData error:', error);
+      return [];
+    }
   }
 }
 

@@ -58,6 +58,7 @@ export default function GarminConnectScreen() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [isRequestingBackfill, setIsRequestingBackfill] = useState(false);
 
   const handleConnect = async () => {
     setIsConnecting(true);
@@ -82,20 +83,61 @@ export default function GarminConnectScreen() {
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      await garminService.syncRecentSleepData(30);
-      Alert.alert(
-        'Success',
-        'Your sleep data has been synced. WakeWise will now analyze your patterns.',
-        [{ text: 'Continue', onPress: () => navigation.goBack() }]
-      );
+      // Sync any existing sleep data from Supabase (populated by Garmin webhooks)
+      const sessions = await garminService.fetchHistoricalSleepData(30);
+
+      if (sessions.length > 0) {
+        Alert.alert(
+          'Success',
+          `Synced ${sessions.length} nights of sleep data. WakeWise will now analyze your patterns.`,
+          [{ text: 'Continue', onPress: () => navigation.goBack() }]
+        );
+      } else {
+        // No data yet - webhooks will push new data going forward
+        Alert.alert(
+          'Connected',
+          'Connected to Garmin! Your sleep data will sync automatically after your next sleep session. WakeWise needs 7+ nights of data to make predictions.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
+      }
     } catch (error) {
+      console.error('[GarminConnect] Sync error:', error);
       Alert.alert(
-        'Sync Note',
-        'Connected successfully but could not sync sleep data yet. Your data will sync automatically later.',
+        'Connected',
+        'Connected to Garmin! Your sleep data will sync automatically after your next sleep session.',
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleRequestBackfill = async () => {
+    setIsRequestingBackfill(true);
+    try {
+      const success = await garminService.requestBackfill(30);
+      if (success) {
+        Alert.alert(
+          'Request Sent',
+          'Historical data request sent to Garmin. Data should arrive within a few minutes via webhook. Tap "Refresh Data" to check for new data.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Request Failed',
+          'Could not request historical data from Garmin. Their servers may be temporarily unavailable. Please try again later.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('[GarminConnect] Backfill error:', error);
+      Alert.alert(
+        'Error',
+        'An error occurred while requesting historical data.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsRequestingBackfill(false);
     }
   };
 
@@ -176,6 +218,35 @@ export default function GarminConnectScreen() {
                 <Text style={styles.syncingText}>Syncing sleep data...</Text>
               </View>
             )}
+
+            {/* Action buttons */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.primaryActionButton, isRequestingBackfill && styles.actionButtonDisabled]}
+                onPress={handleRequestBackfill}
+                disabled={isRequestingBackfill || isSyncing}
+                activeOpacity={0.85}
+              >
+                {isRequestingBackfill ? (
+                  <ActivityIndicator color={COLORS.background} size="small" />
+                ) : (
+                  <Text style={styles.primaryActionButtonText}>Sync Historical Data</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionButton, styles.secondaryActionButton, isSyncing && styles.actionButtonDisabled]}
+                onPress={handleSync}
+                disabled={isSyncing || isRequestingBackfill}
+                activeOpacity={0.85}
+              >
+                {isSyncing ? (
+                  <ActivityIndicator color={COLORS.primary} size="small" />
+                ) : (
+                  <Text style={styles.secondaryActionButtonText}>Refresh Data</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           <TouchableOpacity
@@ -474,5 +545,41 @@ const styles = StyleSheet.create({
   syncingText: {
     color: COLORS.textSecondary,
     fontSize: 14,
+  },
+
+  // Action buttons for connected state
+  actionButtons: {
+    width: '100%',
+    marginTop: 24,
+    gap: 12,
+  },
+  actionButton: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 50,
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
+  },
+  primaryActionButton: {
+    backgroundColor: COLORS.primary,
+  },
+  primaryActionButtonText: {
+    color: COLORS.background,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryActionButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceBorder,
+  },
+  secondaryActionButtonText: {
+    color: COLORS.primary,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
