@@ -12,8 +12,8 @@ import {
   SettingsScreen,
   GarminConnectScreen,
 } from '../screens';
-import { storageService } from '../services/StorageService';
-import { alarmService } from '../services/AlarmService';
+import { storageService } from '../services/storage.service';
+import { alarmService } from '../services/alarm.service';
 import { COLORS } from '../constants/config';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

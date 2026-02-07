@@ -10,7 +10,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS } from '../constants/config';
 import { RootStackParamList } from '../models/types';
-import { feedbackEngine } from '../services/FeedbackEngine';
+import { feedbackEngine } from '../services/feedback.service';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Feedback'>;
 type RouteProps = RouteProp<RootStackParamList, 'Feedback'>;

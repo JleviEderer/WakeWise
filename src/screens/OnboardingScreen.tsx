@@ -11,8 +11,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS } from '../constants/config';
 import { RootStackParamList } from '../models/types';
-import { storageService } from '../services/StorageService';
-import { alarmService } from '../services/AlarmService';
+import { storageService } from '../services/storage.service';
+import { alarmService } from '../services/alarm.service';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
 

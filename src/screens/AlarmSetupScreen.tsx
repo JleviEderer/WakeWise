@@ -12,7 +12,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, WINDOW_DURATION_OPTIONS, DAYS_OF_WEEK } from '../constants/config';
 import { RootStackParamList, WakeWindow } from '../models/types';
-import { storageService } from '../services/StorageService';
+import { storageService } from '../services/storage.service';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'AlarmSetup'>;
 type RouteProps = RouteProp<RootStackParamList, 'AlarmSetup'>;

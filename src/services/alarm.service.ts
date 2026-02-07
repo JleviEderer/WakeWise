@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { WakePrediction, WakeWindow } from '../models/types';
-import { storageService } from './StorageService';
+import { storageService } from './storage.service';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({

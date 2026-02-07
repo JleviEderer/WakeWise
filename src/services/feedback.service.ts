@@ -2,7 +2,7 @@ import {
   FeedbackRating,
   WakePrediction,
 } from '../models/types';
-import { storageService } from './StorageService';
+import { storageService } from './storage.service';
 
 interface FeedbackStats {
   totalRatings: number;

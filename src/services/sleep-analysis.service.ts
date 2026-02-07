@@ -5,7 +5,7 @@ import {
   SleepStageType,
 } from '../models/types';
 import { SLEEP_ANALYSIS } from '../constants/config';
-import { storageService } from './StorageService';
+import { storageService } from './storage.service';
 
 class SleepAnalysisService {
   // Analyze sleep patterns from historical data

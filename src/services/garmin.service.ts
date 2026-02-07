@@ -2,8 +2,8 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Crypto from 'expo-crypto';
 import { GARMIN_CONFIG } from '../constants/config';
 import { SleepSession, SleepStage, GarminTokens } from '../models/types';
-import { storageService } from './StorageService';
-import { supabaseService } from './SupabaseService';
+import { storageService } from './storage.service';
+import { supabaseService } from './supabase.service';
 
 // Garmin OAuth 2.0 with PKCE (Proof Key for Code Exchange)
 

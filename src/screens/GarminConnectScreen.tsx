@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS } from '../constants/config';
 import { RootStackParamList } from '../models/types';
-import { garminService } from '../services/GarminService';
+import { garminService } from '../services/garmin.service';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -97,7 +97,7 @@ export default function GarminConnectScreen() {
         Alert.alert(
           'Connected',
           'Connected to Garmin! Your sleep data will sync automatically after your next sleep session. WakeWise needs 7+ nights of data to make predictions.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          [{ text: 'OK' }]
         );
       }
     } catch (error) {
@@ -105,7 +105,7 @@ export default function GarminConnectScreen() {
       Alert.alert(
         'Connected',
         'Connected to Garmin! Your sleep data will sync automatically after your next sleep session.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        [{ text: 'OK' }]
       );
     } finally {
       setIsSyncing(false);

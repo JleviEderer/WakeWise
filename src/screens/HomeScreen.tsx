@@ -14,10 +14,10 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS } from '../constants/config';
 import { RootStackParamList, WakeWindow, WakePrediction } from '../models/types';
-import { storageService } from '../services/StorageService';
-import { garminService } from '../services/GarminService';
-import { wakePredictorService } from '../services/WakePredictorService';
-import { alarmService } from '../services/AlarmService';
+import { storageService } from '../services/storage.service';
+import { garminService } from '../services/garmin.service';
+import { wakePredictorService } from '../services/wake-predictor.service';
+import { alarmService } from '../services/alarm.service';
 
 const { width } = Dimensions.get('window');
 

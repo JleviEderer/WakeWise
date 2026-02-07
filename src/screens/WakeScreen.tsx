@@ -11,7 +11,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS } from '../constants/config';
 import { RootStackParamList } from '../models/types';
-import { alarmService } from '../services/AlarmService';
+import { alarmService } from '../services/alarm.service';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Wake'>;
 type RouteProps = RouteProp<RootStackParamList, 'Wake'>;

@@ -12,9 +12,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, APP_INFO } from '../constants/config';
 import { RootStackParamList, UserSettings } from '../models/types';
-import { storageService } from '../services/StorageService';
-import { garminService } from '../services/GarminService';
-import { feedbackEngine } from '../services/FeedbackEngine';
+import { storageService } from '../services/storage.service';
+import { garminService } from '../services/garmin.service';
+import { feedbackEngine } from '../services/feedback.service';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

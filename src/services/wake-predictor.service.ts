@@ -6,8 +6,8 @@ import {
   SleepStageType,
 } from '../models/types';
 import { SLEEP_ANALYSIS } from '../constants/config';
-import { sleepAnalysisService } from './SleepAnalysisService';
-import { storageService } from './StorageService';
+import { sleepAnalysisService } from './sleep-analysis.service';
+import { storageService } from './storage.service';
 
 class WakePredictorService {
   // Generate a wake prediction for tonight
