@@ -363,17 +363,14 @@ class GarminService {
       const endTime = Math.floor(Date.now() / 1000);
       const startTime = endTime - (days * 24 * 60 * 60);
 
-      const url = `${GARMIN_CONFIG.API_BASE_URL}/wellness-api/rest/backfill/sleeps`;
+      const params = new URLSearchParams({
+        summaryStartTimeInSeconds: startTime.toString(),
+        summaryEndTimeInSeconds: endTime.toString(),
+      });
+      const url = `${GARMIN_CONFIG.API_BASE_URL}/wellness-api/rest/backfill/sleeps?${params.toString()}`;
       console.log('[Garmin API] Requesting backfill for', days, 'days...');
 
-      const response = await this.fetchWithAuth(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          summaryStartTimeInSeconds: startTime,
-          summaryEndTimeInSeconds: endTime,
-        }),
-      });
+      const response = await this.fetchWithAuth(url);
 
       console.log('[Garmin API] Backfill response status:', response.status);
 

@@ -1,3 +1,22 @@
+## How to use this file
+This is your operating contract. Before starting any task:
+1. Re-read the relevant sections of this file.
+2. If a command is listed below, use it exactly — don't guess alternatives.
+3. If you need to deviate from these rules, state why before proceeding.
+4. When creating new files, follow the file placement rules exactly.
+5. Follow the architecture rules exactly
+
+When creating or updating .claude/napkin.md, always include a "Graduation Queue" section for lessons stable enough to become permanent rules in CLAUDE.md. When graduated, move to CLAUDE.md and delete from napkin.
+
+## Keeping this file current
+When you:
+- Add a new dependency → update the Stack section
+- Create a new env var → add it to the Gotchas section
+- Change a command → update Commands section
+- Make an architecture decision → update Architecture Overview and log it in docs/DECISIONS.md
+- Add a new domain/module → update File Placement with the new paths
+Do this in the same commit as the change itself.
+
 Project: WakeWise
 Goal: Intelligent wake alarm app that uses Garmin sleep data to predict optimal wake times during light sleep phases. Privacy-first: sleep data stored in user's own Supabase instance.
 Stack: TypeScript, React Native (Expo), Supabase (Postgres + Edge Functions), Garmin Health API
